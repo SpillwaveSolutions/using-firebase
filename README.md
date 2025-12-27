@@ -22,6 +22,77 @@ cp -r using-firebase ~/.claude/skills/
 
 Or clone from the repository and install via the Claude Code skill manager.
 
+## Installing with Skilz (Universal Installer)
+
+The recommended way to install this skill across different AI coding agents is using the **skilz** universal installer.
+
+### Install Skilz
+
+```bash
+pip install skilz
+```
+
+### Git URL Options
+
+You can use either `-g` or `--git` with HTTPS or SSH URLs:
+
+```bash
+# HTTPS URL
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase
+
+# SSH URL
+skilz install --git git@github.com:SpillwaveSolutions/using-firebase.git
+```
+
+### Claude Code
+
+Install to user home (available in all projects):
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase
+```
+
+Install to current project only:
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --project
+```
+
+### OpenCode
+
+Install for [OpenCode](https://opencode.ai):
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --agent opencode
+```
+
+Project-level install:
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --project --agent opencode
+```
+
+### Gemini
+
+Project-level install for Gemini:
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --agent gemini
+```
+
+### OpenAI Codex
+
+Install for OpenAI Codex:
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --agent codex
+```
+
+Project-level install:
+```bash
+skilz install -g https://github.com/SpillwaveSolutions/using-firebase --project --agent codex
+```
+
+### Other Supported Agents
+
+Skilz supports 14+ coding agents including Windsurf, Qwen Code, and more.
+
+For complete documentation and the full list of supported agents, visit [AgentSkills.io](https://agentskills.io/home).
+
 ## Quick Start
 
 1. **Initialize project**: `scripts/init_project.sh [project-id]`
