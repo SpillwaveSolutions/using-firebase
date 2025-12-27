@@ -1,0 +1,117 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // =========================================================================
+    // Helper Functions
+    // =========================================================================
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+    
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidDocument() {
+      return request.resource.contentType in [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+    }
+    
+    function isUnderSizeLimit(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // =========================================================================
+    // User-specific Storage
+    // =========================================================================
+    
+    // Users can read/write to their own folder
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) && isUnderSizeLimit(10);
+    }
+    
+    // =========================================================================
+    // Profile Pictures
+    // =========================================================================
+    
+    match /profiles/{userId}/avatar.{ext} {
+      // Anyone can view profile pictures
+      allow read: if true;
+      
+      // User can upload their own avatar with validation
+      allow write: if isOwner(userId)
+                   && isValidImage()
+                   && isUnderSizeLimit(5)
+                   && ext.matches('jpg|jpeg|png|gif|webp');
+    }
+    
+    // =========================================================================
+    // Public Assets
+    // =========================================================================
+    
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn() && isUnderSizeLimit(10);
+    }
+    
+    // =========================================================================
+    // Private Documents
+    // =========================================================================
+    
+    match /documents/{userId}/{docId} {
+      // Only owner can access
+      allow read, write: if isOwner(userId)
+                         && isValidDocument()
+                         && isUnderSizeLimit(25);
+    }
+    
+    // =========================================================================
+    // Uploads pending processing
+    // =========================================================================
+    
+    match /uploads/{uploadId} {
+      // Authenticated users can upload
+      allow create: if isSignedIn()
+                    && isUnderSizeLimit(50)
+                    && request.resource.metadata.uploadedBy == request.auth.uid;
+      
+      // Only uploader can read their pending uploads
+      allow read: if isSignedIn()
+                  && resource.metadata.uploadedBy == request.auth.uid;
+      
+      // Only backend can delete (via Cloud Function)
+      allow delete: if false;
+    }
+    
+    // =========================================================================
+    // Admin-only Storage
+    // =========================================================================
+    
+    match /admin/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // Default Deny
+    // =========================================================================
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

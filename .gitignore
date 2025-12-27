@@ -1,0 +1,64 @@
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.firebaserc
+ui-debug.log
+firestore-debug.log
+pubsub-debug.log
+database-debug.log
+
+# Node.js (Firebase Functions)
+node_modules/
+functions/node_modules/
+functions/lib/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (Cloud Functions)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.json.enc
+service-account*.json
+*-credentials.json
+secrets/
+
+# Local emulator data
+emulator-data/
+.emulator/
+
+# Coverage and testing
+.coverage
+htmlcov/
+.pytest_cache/
+.nyc_output/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =========================================================================
+    // Helper Functions
+    // =========================================================================
+    
+    // Authentication helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+    
+    function hasRole(role) {
+      return isSignedIn() && request.auth.token.role == role;
+    }
+    
+    // Document helpers
+    function isAuthor() {
+      return isSignedIn() && resource.data.authorId == request.auth.uid;
+    }
+    
+    function willBeAuthor() {
+      return isSignedIn() && request.resource.data.authorId == request.auth.uid;
+    }
+    
+    // Validation helpers
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function onlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string
+          && request.resource.data[field].size() >= minLen
+          && request.resource.data[field].size() <= maxLen;
+    }
+    
+    // =========================================================================
+    // User Documents
+    // =========================================================================
+    
+    match /users/{userId} {
+      // Anyone signed in can read user profiles
+      allow read: if isSignedIn();
+      
+      // Users can only write their own profile
+      allow create: if isOwner(userId)
+                    && hasRequiredFields(['email', 'createdAt'])
+                    && request.resource.data.createdAt == request.time;
+      
+      allow update: if isOwner(userId);
+      
+      allow delete: if isOwner(userId) || isAdmin();
+      
+      // User's private subcollections
+      match /private/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // =========================================================================
+    // Posts / Content
+    // =========================================================================
+    
+    match /posts/{postId} {
+      // Public read
+      allow read: if true;
+      
+      // Authenticated users can create with validation
+      allow create: if isSignedIn()
+                    && willBeAuthor()
+                    && hasRequiredFields(['title', 'content', 'authorId', 'createdAt'])
+                    && isValidString('title', 1, 200)
+                    && isValidString('content', 1, 50000)
+                    && request.resource.data.createdAt == request.time;
+      
+      // Only author can update (or admin)
+      allow update: if (isAuthor() || isAdmin())
+                    && request.resource.data.authorId == resource.data.authorId  // Can't change author
+                    && request.resource.data.createdAt == resource.data.createdAt;  // Can't change created
+      
+      // Only author or admin can delete
+      allow delete: if isAuthor() || isAdmin();
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn()
+                      && request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if isSignedIn() 
+                              && resource.data.authorId == request.auth.uid;
+      }
+    }
+    
+    // =========================================================================
+    // Admin-only Collection
+    // =========================================================================
+    
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // App Configuration (read-only for users)
+    // =========================================================================
+    
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // Default Deny
+    // =========================================================================
+    
+    // Deny access to any path not explicitly matched above
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
