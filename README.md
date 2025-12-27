@@ -91,7 +91,9 @@ skilz install -g https://github.com/SpillwaveSolutions/using-firebase --project 
 
 Skilz supports 14+ coding agents including Windsurf, Qwen Code, and more.
 
-For complete documentation and the full list of supported agents, visit [AgentSkills.io](https://agentskills.io/home).
+For the full list of supported platforms, visit [SkillzWave.ai/platforms](https://skillzwave.ai/platforms/) or see the [skilz-cli GitHub repository](https://github.com/SpillwaveSolutions/skilz-cli).
+
+This skill follows the [AgentSkills.io](https://agentskills.io/home) standard for agentic skills.
 
 ## Quick Start
 
