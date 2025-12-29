@@ -17,11 +17,30 @@ metadata:
 
 # Firebase Development Skill
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Scope](#scope)
+- [Task Navigation](#task-navigation)
+- [Scripts](#scripts)
+- [Cloud Functions Generation](#cloud-functions-generation)
+- [Assets](#assets)
+- [Common Workflows](#common-workflows)
+- [Pre-Deployment Checklist](#pre-deployment-checklist)
+- [Emulator Ports](#emulator-ports)
+- [Key Decisions](#key-decisions)
+
 ## Quick Start
 
 1. **New project**: Run `scripts/init_project.sh [project-id]`
 2. **Local development**: Run `scripts/start_emulators.sh`
 3. **Deploy**: Run `scripts/deploy.sh`
+
+## Scope
+
+**Use this skill for:** Firebase development including Firestore CRUD/queries, Cloud Functions (1st/2nd gen), Firebase CLI, emulator setup, security rules, authentication, hosting, and GCP integration.
+
+**Do not use for:** Pure GCP without Firebase, AWS/Azure services, non-serverless architectures, self-hosted solutions, or complex relational queries (use Cloud SQL instead).
 
 ## Task Navigation
 
@@ -47,20 +66,9 @@ metadata:
 | Hosting configuration | `references/hosting-config.md` |
 | GCP integration | `references/gcp-integration.md` |
 
-## Quick Reference CLI
-
-| Command | Purpose |
-|---------|---------|
-| `firebase login` | Authenticate with Firebase |
-| `firebase use <project>` | Switch active project |
-| `firebase emulators:start` | Start local emulators |
-| `firebase deploy` | Deploy all resources |
-| `firebase deploy --only functions` | Deploy functions only |
-| `firebase deploy --only firestore:rules` | Deploy security rules |
-| `firebase functions:log` | View function logs |
-| `firebase firestore:delete --all-collections` | Clear all Firestore data |
-
 ## Scripts
+
+For complete CLI reference, see `references/cli-commands.md`.
 
 ### init_project.sh
 Initialize Firebase project with Firestore, Functions, Hosting, Storage, Emulators.
@@ -96,12 +104,15 @@ Deploy Cloud Functions with granular control.
 ```
 
 ### manage_secrets.sh
-Manage Cloud Functions secrets (2nd gen).
+Manage Cloud Functions secrets for 2nd gen functions. Uses GCP Secret Manager for secure storage. Prefer this script over direct `gcloud` commands for Firebase-integrated secret management with proper function access binding.
+
+**Secret lifecycle:** Create secrets before first deploy, update via `set` (creates new version), bind to functions via `runWith({ secrets: [...] })`, and rotate by setting new values.
+
 ```bash
-./scripts/manage_secrets.sh set API_KEY      # Set secret
-./scripts/manage_secrets.sh get API_KEY      # View metadata
-./scripts/manage_secrets.sh list             # List all
-./scripts/manage_secrets.sh delete API_KEY   # Delete
+./scripts/manage_secrets.sh set API_KEY      # Set secret (creates or updates)
+./scripts/manage_secrets.sh get API_KEY      # View metadata and versions
+./scripts/manage_secrets.sh list             # List all project secrets
+./scripts/manage_secrets.sh delete API_KEY   # Delete secret and all versions
 ```
 
 ### export_firestore.sh / import_firestore.sh
@@ -226,13 +237,3 @@ See `references/firestore.md` for patterns.
 - **Python**: ML/data science, Python ecosystem
 
 Both can coexist via multiple codebases in `firebase.json`.
-
-## When Not to Use This Skill
-
-This skill focuses on **Firebase development**. Do not use for:
-
-- **Pure GCP without Firebase**: Use GCP-specific documentation instead
-- **AWS or Azure services**: This skill is Firebase/GCP-only
-- **Non-serverless architectures**: Firebase is serverless-first
-- **Self-hosted solutions**: Firebase is a managed platform
-- **Complex relational queries**: Firestore is a NoSQL document database; consider Cloud SQL for relational needs
